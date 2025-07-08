@@ -8,5 +8,6 @@ public enum StatesType
   PATROL,
   PURSUIT,
   DEATH,
-  TOGGLE_MODE
+  TOGGLE_MODE,
+  AIM
 }

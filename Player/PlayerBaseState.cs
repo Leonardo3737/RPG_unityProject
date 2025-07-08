@@ -9,6 +9,7 @@ public abstract class PlayerBaseState : State
 
 	protected static readonly int FreeLookBlendTree = Animator.StringToHash("FreeLookBlendTree");
 	protected static readonly int TriggerBlendTree = Animator.StringToHash("TriggerBlendTree");
+	protected static readonly int AimBlendTree = Animator.StringToHash("AimBlendTree");
 	protected static readonly int FreeLookSpeed = Animator.StringToHash("FreeLookSpeed");
 	protected static readonly int TriggerSpeedX = Animator.StringToHash("TriggerSpeedX");
 	protected static readonly int TriggerSpeedZ = Animator.StringToHash("TriggerSpeedZ");
@@ -96,7 +97,6 @@ public abstract class PlayerBaseState : State
 		);
 
 		sm.Animator.SetFloat(FreeLookSpeed, CurrentAnimationSmooth, 0.1f, deltaTime);
-
 
 		return movement;
 	}
