@@ -77,7 +77,7 @@ public class PlayerStateMachine : StateMachine
 	public bool IsChangingTarget { get; set; }
 	public bool CancelAttack { get; set; } = false;
 	public bool IsAiming { get; set; } = false;
-	public bool IsShooting { get; set; } = false;
+	public bool IsToShoot { get; set; } = false;
 	public float RegularControllerHeigth { get; set; } = 1.5f;
 	public float CrouchedControllerHeigth { get; set; } = 1.2f;
 	public int AttackIndex { get; set; } = 0;
@@ -141,8 +141,8 @@ public class PlayerStateMachine : StateMachine
 				ChangeState(new PlayerAttackState(this, AttackTypes.MainAttack));
 				break;
 			case Modes.EQUIPPED:
-				if (IsShooting) break;
-				IsShooting = true;
+				if (IsToShoot) break;
+				IsToShoot = true;
 				break;
 		}
 	}
@@ -273,21 +273,25 @@ public class PlayerStateMachine : StateMachine
 	public void Shooting(Vector3 target)
 	{
 		var Arrow = Instantiate(ArrowPrefab);
-		if (Arrow.TryGetComponent(out Arrow arrow))
-		{
-			arrow.SetTarget(target);
-		}
+
+
 		var spawn = CurrentEquipament.transform.Find("ArrowSpawn");
 		if (spawn == null)
 		{
 			Destroy(Arrow);
 			return;
 		}
+		Arrow.transform.position = spawn.position;
+
+		if (Arrow.TryGetComponent(out Arrow arrow))
+		{
+			arrow.SetTarget(target);
+		}
 
 		Vector3 direction = (target - spawn.position).normalized;
 		Quaternion rotation = Quaternion.LookRotation(direction);
 
-		Arrow.transform.SetPositionAndRotation(spawn.position, rotation);
+		//Arrow.transform.SetPositionAndRotation(spawn.position, rotation);
 	}
 
 }

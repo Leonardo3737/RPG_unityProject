@@ -6,14 +6,16 @@ using UnityEngine;
 public class PlayerAimState : PlayerBaseState
 {
   private readonly int DrawArrowAnimation = Animator.StringToHash("Draw Arrow");
+  private readonly int ShootAnimation = Animator.StringToHash("Shoot");
   private bool IsDrawArrowFinalized = false;
+  private bool IsShootAnimationStart = false;
+  private bool IsShooting = false;
 
   private float CenterOrbitRadius;
   private float SmoothCenterOrbitRadius;
   private float CurrentSmoothVelocity;
   private CinemachineOrbitalFollow Orbital;
   private Vector2 ScreenCenter;
-  private Vector3 PreviousTargetPosition;
   public PlayerAimState(PlayerStateMachine stateMachine) : base(stateMachine, StatesType.AIM) { }
 
 
@@ -22,6 +24,10 @@ public class PlayerAimState : PlayerBaseState
     ScreenCenter = new(Screen.width / 2f, Screen.height / 2f);
     sm.IsAiming = true;
     sm.AimImage.enabled = true;
+
+    // SEMPRE HABILITAR CONTROLE DA CAMERA COM MOUSE
+    EnableCameraInputController();
+
     sm.Animator.CrossFadeInFixedTime(DrawArrowAnimation, 0.1f, sm.EquippedLayer);
     if (sm.FreeLookCamera.TryGetComponent(out Orbital))
     {
@@ -46,14 +52,7 @@ public class PlayerAimState : PlayerBaseState
       targetPosition = ray.origin + ray.direction * 100f;
     }
 
-    if (sm.IsShooting)
-    {
-      sm.Shooting(targetPosition);
-      sm.IsShooting = false;
-    }
-
-    PreviousTargetPosition = targetPosition;
-
+    Shoot(targetPosition);
 
     var currentPosition = sm.transform.position;
 
@@ -71,7 +70,7 @@ public class PlayerAimState : PlayerBaseState
       sm.transform.rotation = targetRotation;
     }
 
-    if (!IsDrawArrowFinalized)
+    if (!IsDrawArrowFinalized && !IsShootAnimationStart)
     {
       var drawArrowNormalizedTime = GetNormalizedTime(sm.Animator, "drawArrow", sm.EquippedLayer);
 
@@ -92,6 +91,10 @@ public class PlayerAimState : PlayerBaseState
     if (Orbital != null)
     {
       Orbital.Orbits.Center.Radius = CenterOrbitRadius;
+    }
+    if (sm.IsToShoot)
+    {
+      sm.IsToShoot = false;
     }
     sm.AimImage.enabled = false;
     sm.IsAiming = false;
@@ -138,6 +141,34 @@ public class PlayerAimState : PlayerBaseState
           0.2f
       );
       Orbital.Orbits.Center.Radius = SmoothCenterOrbitRadius;
+    }
+  }
+
+  private void Shoot(Vector3 targetPosition)
+  {
+    if (!sm.IsToShoot) return;
+
+    if (!IsShootAnimationStart)
+    {
+      sm.Animator.CrossFadeInFixedTime(ShootAnimation, 0.1f);
+      IsShootAnimationStart = true;
+      return;
+    }
+    var normalizedTime = GetNormalizedTime(sm.Animator, "shoot", sm.EquippedLayer);
+
+    if (normalizedTime > 0.28f && !IsShooting)
+    {
+      sm.Shooting(targetPosition);
+      IsShooting = true;
+    }
+    if (normalizedTime > 1f)
+    {
+      IsShootAnimationStart = false;
+      IsShooting = false;
+      IsDrawArrowFinalized = false;
+      sm.IsToShoot = false;
+
+      sm.Animator.CrossFadeInFixedTime(DrawArrowAnimation, 0.1f, sm.EquippedLayer);
     }
   }
 
