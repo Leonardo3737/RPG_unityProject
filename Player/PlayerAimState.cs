@@ -63,7 +63,7 @@ public class PlayerAimState : PlayerBaseState
 
     var cameraTargetFinalPosition = cameraTargetPosition + (sm.CameraTarget.transform.right * 0.7f) + (-sm.CameraTarget.transform.up * 0.3f);
 
-    sm.CameraTarget.transform.position = Vector3.Lerp(sm.CameraTarget.transform.position, cameraTargetFinalPosition, deltaTime * 3f);
+    sm.CameraTarget.transform.position = Vector3.Lerp(sm.CameraTarget.transform.position, cameraTargetFinalPosition, deltaTime * 15f);
 
     Vector3 lookDirection = targetPosition - currentPosition;
     lookDirection.y = 0;
@@ -139,14 +139,14 @@ public class PlayerAimState : PlayerBaseState
 
   private void ApproachCamera()
   {
-    if (Orbital != null && Orbital.Orbits.Center.Radius > 3f)
+    if (Orbital != null && Orbital.Orbits.Center.Radius > 2f)
     {
       SmoothCenterOrbitRadius = Orbital.Orbits.Center.Radius;
       SmoothCenterOrbitRadius = Mathf.SmoothDamp(
           SmoothCenterOrbitRadius,
           2f,
           ref CurrentSmoothVelocity,
-          0.2f
+          0.1f
       );
       Orbital.Orbits.Center.Radius = SmoothCenterOrbitRadius;
     }

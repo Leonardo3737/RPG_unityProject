@@ -9,5 +9,6 @@ public enum StatesType
   PURSUIT,
   DEATH,
   TOGGLE_MODE,
-  AIM
+  AIM,
+  JUMP
 }

@@ -81,7 +81,7 @@ public abstract class PlayerBaseState : State
 	{
 		movement = sm.Camera.transform.TransformDirection(movement);
 		movement.y = 0;
-		sm.Controller.Move((movement + sm.ForceReceiver.Movement) * (sm.FreeLookSpeed * deltaTime));
+		Move(deltaTime, movement);
 
 		if (!applySmoothing)
 		{
@@ -99,6 +99,11 @@ public abstract class PlayerBaseState : State
 		sm.Animator.SetFloat(FreeLookSpeed, CurrentAnimationSmooth, 0.1f, deltaTime);
 
 		return movement;
+	}
+
+	protected void Move(float deltaTime, Vector3 movement)
+	{
+		sm.Controller.Move((movement + sm.ForceReceiver.Movement) * (sm.FreeLookSpeed * deltaTime));
 	}
 
 	public Vector3 CalculateMovement(bool applySmoothing = true)
@@ -302,4 +307,20 @@ public abstract class PlayerBaseState : State
 			}
 		}
 	}
+
+	protected Vector3 FaceInputDirectionInstantly()
+	{
+		Vector2 input = sm.InputHandler.InputMovement;
+		if (input == Vector2.zero) return Vector3.zero;
+
+		// Direção no espaço do mundo, baseado na câmera
+		Vector3 direction = new Vector3(input.x, 0, input.y);
+		direction = sm.Camera.transform.TransformDirection(direction);
+		direction.y = 0;
+
+		if (direction.sqrMagnitude < 0.01f) return Vector3.zero;
+
+		sm.transform.rotation = Quaternion.LookRotation(direction);
+		return direction;
+  }
 }

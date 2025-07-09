@@ -89,6 +89,15 @@ public partial class @Controls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Jump"",
+                    ""type"": ""Button"",
+                    ""id"": ""53df0f5c-c30d-4a4d-b7ef-4aba1da31e49"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -353,6 +362,28 @@ public partial class @Controls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""ToggleModes"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c7f1ba6c-0395-4727-8fd6-5944e141b968"",
+                    ""path"": ""<Keyboard>/space"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Jump"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""81eb9916-64ad-4552-afdf-ac52a58d504a"",
+                    ""path"": ""<Gamepad>/buttonSouth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Jump"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -947,6 +978,7 @@ public partial class @Controls: IInputActionCollection2, IDisposable
         m_Player_ChangeTrigger = m_Player.FindAction("ChangeTrigger", throwIfNotFound: true);
         m_Player_AlternativeAttack = m_Player.FindAction("AlternativeAttack", throwIfNotFound: true);
         m_Player_ToggleModes = m_Player.FindAction("ToggleModes", throwIfNotFound: true);
+        m_Player_Jump = m_Player.FindAction("Jump", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1033,6 +1065,7 @@ public partial class @Controls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_ChangeTrigger;
     private readonly InputAction m_Player_AlternativeAttack;
     private readonly InputAction m_Player_ToggleModes;
+    private readonly InputAction m_Player_Jump;
     public struct PlayerActions
     {
         private @Controls m_Wrapper;
@@ -1044,6 +1077,7 @@ public partial class @Controls: IInputActionCollection2, IDisposable
         public InputAction @ChangeTrigger => m_Wrapper.m_Player_ChangeTrigger;
         public InputAction @AlternativeAttack => m_Wrapper.m_Player_AlternativeAttack;
         public InputAction @ToggleModes => m_Wrapper.m_Player_ToggleModes;
+        public InputAction @Jump => m_Wrapper.m_Player_Jump;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -1074,6 +1108,9 @@ public partial class @Controls: IInputActionCollection2, IDisposable
             @ToggleModes.started += instance.OnToggleModes;
             @ToggleModes.performed += instance.OnToggleModes;
             @ToggleModes.canceled += instance.OnToggleModes;
+            @Jump.started += instance.OnJump;
+            @Jump.performed += instance.OnJump;
+            @Jump.canceled += instance.OnJump;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -1099,6 +1136,9 @@ public partial class @Controls: IInputActionCollection2, IDisposable
             @ToggleModes.started -= instance.OnToggleModes;
             @ToggleModes.performed -= instance.OnToggleModes;
             @ToggleModes.canceled -= instance.OnToggleModes;
+            @Jump.started -= instance.OnJump;
+            @Jump.performed -= instance.OnJump;
+            @Jump.canceled -= instance.OnJump;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -1288,6 +1328,7 @@ public partial class @Controls: IInputActionCollection2, IDisposable
         void OnChangeTrigger(InputAction.CallbackContext context);
         void OnAlternativeAttack(InputAction.CallbackContext context);
         void OnToggleModes(InputAction.CallbackContext context);
+        void OnJump(InputAction.CallbackContext context);
     }
     public interface IUIActions
     {

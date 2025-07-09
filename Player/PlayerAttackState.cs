@@ -167,7 +167,7 @@ public class PlayerAttackState : PlayerBaseState
     var IsWalk = false;
     if (sm.Targeter.HasLineOfSight())
     {
-      IsWalk = distance > 1.9f && sm.AttackIndex != 2;
+      IsWalk = distance > 2.1f && sm.AttackIndex != 2;
       
       if (IsWalk)
       {

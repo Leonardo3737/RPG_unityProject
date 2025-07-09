@@ -103,21 +103,6 @@ public class PlayerRollState : PlayerBaseState
     }
   }
 
-  private void FaceInputDirectionInstantly()
-  {
-    Vector2 input = sm.InputHandler.InputMovement;
-    if (input == Vector2.zero) return;
-
-    // Direção no espaço do mundo, baseado na câmera
-    Vector3 direction = new Vector3(input.x, 0, input.y);
-    direction = sm.Camera.transform.TransformDirection(direction);
-    direction.y = 0;
-
-    if (direction.sqrMagnitude < 0.01f) return;
-
-    sm.transform.rotation = Quaternion.LookRotation(direction);
-  }
-
   private void StartCameraTargetReturn()
   {
 

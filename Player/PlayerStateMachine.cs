@@ -76,13 +76,14 @@ public class PlayerStateMachine : StateMachine
 	public event Action OnCancelAttackEvent;
 
 	public bool IsTriggered { get; set; } = false;
+	public bool IsJumping { get; set; } = false;
 	public bool JustRolled { get; set; }
 	public bool IsChangingTarget { get; set; }
 	public bool CancelAttack { get; set; } = false;
 	public bool IsAiming { get; set; } = false;
 	public bool IsToShoot { get; set; } = false;
 	public float RegularControllerHeigth { get; set; } = 1.5f;
-	public float CrouchedControllerHeigth { get; set; } = 1.2f;
+	public float CrouchedControllerHeigth { get; set; } = 1f;
 	public int AttackIndex { get; set; } = 0;
 	public int UnequippedLayer { get; set; } = 1;
 	public int EquippedLayer { get; set; } = 2;
@@ -125,6 +126,7 @@ public class PlayerStateMachine : StateMachine
 		InputHandler.OnRollEvent += HandleRoll;
 		InputHandler.OnChangeTriggerEvent += HandleChangeTrigger;
 		InputHandler.OnToggleModesEvent += HandleToggleModes;
+		InputHandler.OnJumpEvent += HandleJump;
 	}
 	private void OnDisable()
 	{
@@ -134,6 +136,7 @@ public class PlayerStateMachine : StateMachine
 		InputHandler.OnRollEvent -= HandleRoll;
 		InputHandler.OnChangeTriggerEvent -= HandleChangeTrigger;
 		InputHandler.OnToggleModesEvent -= HandleToggleModes;
+		InputHandler.OnJumpEvent -= HandleJump;
 	}
 
 	public void HandleMainAttack()
@@ -214,6 +217,13 @@ public class PlayerStateMachine : StateMachine
 		IsChangingTarget = true;
 		Targeter.ChangeTarget();
 		IsChangingTarget = false;
+	}
+
+	public void HandleJump()
+	{
+		if (!((PlayerBaseState)currentState).CanPerformAction() || IsJumping) return;
+		IsJumping = true;
+		ChangeState(new PlayerJumpState(this));
 	}
 
 	public void OnCancelAttack()
