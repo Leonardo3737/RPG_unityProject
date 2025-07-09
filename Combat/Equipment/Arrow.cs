@@ -4,6 +4,7 @@ public class Arrow : MonoBehaviour
 {
   [SerializeField] private float Speed = 50f;
   private Vector3 Velocity;
+  private Vector3 StartPosition;
   private bool IsLaunched = false;
   private bool IsCollided = false;
 
@@ -13,6 +14,7 @@ public class Arrow : MonoBehaviour
 
   public void SetTarget(Vector3 target)
   {
+    StartPosition = transform.position;
     // A mesma direção que MoveTowards usaria
     Vector3 direction = (target - transform.position).normalized;
 
@@ -29,11 +31,11 @@ public class Arrow : MonoBehaviour
 
     Timer += Time.deltaTime;
 
-    /* if (Timer > LimityTime)
+    if (Timer > LimityTime)
     {
       Destroy(gameObject);
       return;
-    } */
+    }
 
 
     if (IsCollided)
@@ -50,16 +52,36 @@ public class Arrow : MonoBehaviour
     if (Velocity.sqrMagnitude > 0.01f)
       transform.rotation = Quaternion.LookRotation(Velocity);
   }
-  void OnCollisionEnter(Collision collision)
+  void OnTriggerEnter(Collider collision)
   {
     // Parar a física
+    if (collision.CompareTag("Enemy"))
+    {
+      Debug.Log("atingiu CharacterController, ignorando");
+      return;
+    }
+    if (collision.CompareTag("EnemyCollider") && !IsCollided)
+    {
+      var enemyStateMachine = collision.GetComponentInParent<EnemyStateMachine>();
+      if (enemyStateMachine == null) return;
+
+      Vector3 directionToOrigin = StartPosition - enemyStateMachine.transform.position;
+
+      directionToOrigin.y = 0; // ignora diferença de altura
+
+      enemyStateMachine.transform.rotation = Quaternion.LookRotation(directionToOrigin);
+
+      Debug.Log("dano");
+      enemyStateMachine.OnDamage(20, "Damage-1", null);
+    }
+
+
     GetComponent<Rigidbody>().isKinematic = true;
 
-    // Tornar a flecha filha do objeto atingido (pra "grudar")
-    //transform.parent = collision.transform;
+    //Tornar a flecha filha do objeto atingido (pra "grudar")
+    transform.parent = collision.transform;
 
     IsCollided = true;
-    Debug.Log("A collider has made contact with the DoorObject Collider");
   }
 
 }

@@ -47,6 +47,9 @@ public class PlayerStateMachine : StateMachine
 	[field: SerializeField]
 	public Image AimImage { get; set; }
 
+	[field: SerializeField]
+	public Image AlternativeAimImage { get; set; }
+
 	[Header("Movement Speed")]
 
 	[field: SerializeField]
@@ -91,6 +94,7 @@ public class PlayerStateMachine : StateMachine
 	void Start()
 	{
 		AimImage.enabled = false;
+		AlternativeAimImage.enabled = false;
 		CurrentLayer = UnequippedLayer;
 
 		ChangeState(new PlayerFreeLookState(this));
@@ -270,17 +274,16 @@ public class PlayerStateMachine : StateMachine
 		Animator.SetLayerWeight(layerIndex, targetWeight);
 	}
 
-	public void Shooting(Vector3 target)
+	public void Shooting(Vector3 target, Transform spawn)
 	{
 		var Arrow = Instantiate(ArrowPrefab);
 
-
-		var spawn = CurrentEquipament.transform.Find("ArrowSpawn");
 		if (spawn == null)
 		{
 			Destroy(Arrow);
 			return;
 		}
+
 		Arrow.transform.position = spawn.position;
 
 		if (Arrow.TryGetComponent(out Arrow arrow))

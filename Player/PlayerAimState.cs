@@ -10,12 +10,12 @@ public class PlayerAimState : PlayerBaseState
   private bool IsDrawArrowFinalized = false;
   private bool IsShootAnimationStart = false;
   private bool IsShooting = false;
-
   private float CenterOrbitRadius;
   private float SmoothCenterOrbitRadius;
   private float CurrentSmoothVelocity;
   private CinemachineOrbitalFollow Orbital;
   private Vector2 ScreenCenter;
+  private Transform ArrowSpawn;
   public PlayerAimState(PlayerStateMachine stateMachine) : base(stateMachine, StatesType.AIM) { }
 
 
@@ -24,6 +24,8 @@ public class PlayerAimState : PlayerBaseState
     ScreenCenter = new(Screen.width / 2f, Screen.height / 2f);
     sm.IsAiming = true;
     sm.AimImage.enabled = true;
+
+    ArrowSpawn = sm.CurrentEquipament.transform.Find("ArrowSpawn");
 
     // SEMPRE HABILITAR CONTROLE DA CAMERA COM MOUSE
     EnableCameraInputController();
@@ -53,6 +55,7 @@ public class PlayerAimState : PlayerBaseState
     }
 
     Shoot(targetPosition);
+    CheckLineOfSight(targetPosition);
 
     var currentPosition = sm.transform.position;
 
@@ -67,7 +70,8 @@ public class PlayerAimState : PlayerBaseState
     if (lookDirection != Vector3.zero)
     {
       Quaternion targetRotation = Quaternion.LookRotation(lookDirection);
-      sm.transform.rotation = targetRotation;
+      //sm.transform.rotation = targetRotation;
+      sm.transform.rotation = Quaternion.Slerp(sm.transform.rotation, targetRotation, 15f * deltaTime);
     }
 
     if (!IsDrawArrowFinalized && !IsShootAnimationStart)
@@ -88,6 +92,10 @@ public class PlayerAimState : PlayerBaseState
 
   public override void Exit()
   {
+    if (sm.AlternativeAimImage.enabled)
+    {
+      sm.AlternativeAimImage.enabled = false;
+    }
     if (Orbital != null)
     {
       Orbital.Orbits.Center.Radius = CenterOrbitRadius;
@@ -136,7 +144,7 @@ public class PlayerAimState : PlayerBaseState
       SmoothCenterOrbitRadius = Orbital.Orbits.Center.Radius;
       SmoothCenterOrbitRadius = Mathf.SmoothDamp(
           SmoothCenterOrbitRadius,
-          3f,
+          2f,
           ref CurrentSmoothVelocity,
           0.2f
       );
@@ -158,7 +166,7 @@ public class PlayerAimState : PlayerBaseState
 
     if (normalizedTime > 0.28f && !IsShooting)
     {
-      sm.Shooting(targetPosition);
+      sm.Shooting(targetPosition, ArrowSpawn);
       IsShooting = true;
     }
     if (normalizedTime > 1f)
@@ -172,4 +180,42 @@ public class PlayerAimState : PlayerBaseState
     }
   }
 
+  private void CheckLineOfSight(Vector3 target)
+  {
+    var origin = ArrowSpawn.position;
+    var direction = (target - origin).normalized;
+
+    Debug.DrawRay(origin, direction * 50f, Color.red, 1f);
+
+    if (Physics.Raycast(origin, direction, out RaycastHit hit))
+    {
+      var distance = Vector3.Distance(hit.point, target);
+      if (distance < 0.1f)
+      {
+        if (sm.AlternativeAimImage.enabled)
+        {
+          sm.AlternativeAimImage.enabled = false;
+        }
+        return;
+      }
+
+      if (hit.point != target && !sm.AlternativeAimImage.enabled)
+      {
+        var screenPosition = Camera.main.WorldToScreenPoint(hit.point);
+        sm.AlternativeAimImage.enabled = true;
+
+        sm.AlternativeAimImage.transform.position = screenPosition;
+        return;
+      }
+      else if (hit.point == target && sm.AlternativeAimImage.enabled)
+      {
+        sm.AlternativeAimImage.enabled = false;
+      }
+      return;
+    }
+    if (sm.AlternativeAimImage.enabled)
+    {
+      sm.AlternativeAimImage.enabled = false;
+    }
+  }
 }
