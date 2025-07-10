@@ -28,6 +28,7 @@ public class PlayerStateMachine : StateMachine
 	public GameObject BowPrefab;
 	public GameObject ArrowPrefab;
 	public Transform BowHolder;
+	public Transform ArrowHolder;
 
 	[field: SerializeField]
 	public GameObject CameraTarget { get; private set; }
@@ -68,10 +69,46 @@ public class PlayerStateMachine : StateMachine
 	public float AimSpeed { get; private set; } = 3f;
 
 
+	[Header("Sounds")]
+
+	[field: SerializeField]
+	public AudioSource FootStepAudioSource { get; private set; }
+
+	[field: SerializeField]
+	public AudioSource VoiceAudioSource { get; private set; }
+
+	[field: SerializeField]
+	public AudioSource MiddleAudioSource { get; private set; }
+
+	[field: SerializeField]
+	public AudioClip[] FootStepSounds { get; private set; }
+
+	[field: SerializeField]
+	public AudioClip[] JumpStartSounds { get; private set; }
+
+	[field: SerializeField]
+	public AudioClip[] JumpEndSounds { get; private set; }
+
+	[field: SerializeField]
+	public AudioClip[] RollSounds { get; private set; }
+
+	[field: SerializeField]
+	public AudioClip[] AttackSounds { get; private set; }
+
+	[field: SerializeField]
+	public AudioClip DrawArrowSound { get; private set; }
+
+	[field: SerializeField]
+	public AudioClip ShootArrowSound { get; private set; }
+
+	[field: SerializeField]
+	public AudioClip ToggleModeSound { get; private set; }
+
 	[Header("Animator Controllers")]
 
 	[field: SerializeField]
 	public Animator Animator { get; private set; }
+
 
 	public event Action OnCancelAttackEvent;
 
@@ -148,7 +185,7 @@ public class PlayerStateMachine : StateMachine
 				ChangeState(new PlayerAttackState(this, AttackTypes.MainAttack));
 				break;
 			case Modes.EQUIPPED:
-				if (IsToShoot) break;
+				if (IsToShoot || currentState.StateType != StatesType.AIM) break;
 				IsToShoot = true;
 				break;
 		}
@@ -233,6 +270,7 @@ public class PlayerStateMachine : StateMachine
 
 	public void ToggleMode()
 	{
+		MiddleAudioSource.PlayOneShot(ToggleModeSound);
 		if (CurrentMode == Modes.UNARMED)
 		{
 			CurrentEquipament = Instantiate(BowPrefab, BowHolder);
@@ -284,6 +322,28 @@ public class PlayerStateMachine : StateMachine
 		Animator.SetLayerWeight(layerIndex, targetWeight);
 	}
 
+	public GameObject SpawnArrow()
+	{
+		var arrow = Instantiate(ArrowPrefab, ArrowHolder);
+		arrow.transform.position = new Vector3(0.027f, 0.404f, 0.047f);
+		arrow.transform.SetLocalPositionAndRotation(
+			new Vector3(0.027f, 0.404f, 0.047f),
+			Quaternion.Euler(-82.518f, 29.145f, -46.026f)
+		);
+
+		/* if (arrow.TryGetComponent(out arrow arrow))
+		{
+
+		} */
+
+		return arrow;
+	}
+
+	public void DestroyObj(GameObject obj)
+	{
+		Destroy(obj);
+	}
+
 	public void Shooting(Vector3 target, Transform spawn)
 	{
 		var Arrow = Instantiate(ArrowPrefab);
@@ -305,6 +365,22 @@ public class PlayerStateMachine : StateMachine
 		Quaternion rotation = Quaternion.LookRotation(direction);
 
 		//Arrow.transform.SetPositionAndRotation(spawn.position, rotation);
+	}
+
+	public void MakeSound(AudioSource source, AudioClip sound)
+	{
+		source.PlayOneShot(sound);
+
+		var radius = source.maxDistance;
+		var position = transform.position;
+
+		Collider[] listeners = Physics.OverlapSphere(position, radius, LayerMask.GetMask("Enemy"));
+		
+    foreach (var col in listeners)
+		{
+			if (!col.TryGetComponent(out EnemyStateMachine enemyStateMachine)) continue;
+      enemyStateMachine.OnHeardSound(position);
+		}
 	}
 
 }

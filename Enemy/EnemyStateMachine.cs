@@ -49,10 +49,20 @@ public class EnemyStateMachine : StateMachine
 
   [field: SerializeField]
   public Canvas HealthCanvas { get; set; }
+
+  [field: SerializeField]
+  public AudioSource AudioSource { get; private set; }
+
+  [field: SerializeField]
+  public AudioClip[] DamageSounds { get; private set; }
+
   public int AttackIndex = 0;
   public bool IsBeingFocused = false;
+  public bool IsInvestigatingSound = false;
 
   public bool IsDie { get; set; } = false;
+
+  public Vector3? LastSoundOrigin;
 
   public event Action<EnemyStateMachine> OnDieEvent;
 
@@ -72,6 +82,13 @@ public class EnemyStateMachine : StateMachine
 
   public override void Update()
   {
+    if (IsInvestigatingSound && HasReachedDestination())
+    {
+      Debug.Log("terminou sua investigação");
+      IsInvestigatingSound = false;
+      LastSoundOrigin = null;
+    }
+
     if (HealthCanvas != null && FocusIndicatorImage != null && FocusIndicatorImage.enabled != IsBeingFocused)
     {
       FocusIndicatorImage.enabled = IsBeingFocused;
@@ -135,6 +152,48 @@ public class EnemyStateMachine : StateMachine
     if (HealthCanvas.TryGetComponent<GraphicRaycaster>(out var raycaster)) Destroy(raycaster, timing);
 
     Destroy(HealthCanvas, timing);
+  }
+
+  public void OnHeardSound(Vector3 origin)
+  {
+    if (currentState.StateType == StatesType.PURSUIT) return;
+
+    var aux = true;
+
+    if (LastSoundOrigin != null)
+    {
+      var distance = Vector3.Distance(origin, LastSoundOrigin.Value);
+
+      aux = distance < 2f;
+    }
+
+    if (IsInvestigatingSound && aux) return;
+
+    IsInvestigatingSound = true;
+
+    Debug.Log("escutou");
+
+    Vector3 directionToOrigin = origin - transform.position;
+    directionToOrigin.y = 0;
+
+    NavMeshAgent.destination = origin - (directionToOrigin * 0.3f);
+    NavMeshAgent.speed = PursuitSpeed;
+
+
+
+    /* Vector3 directionToOrigin = origin - transform.position;
+
+    directionToOrigin.y = 0; // ignora diferença de altura
+
+    transform.rotation = Quaternion.LookRotation(directionToOrigin); */
+
+  }
+
+  public bool HasReachedDestination()
+  {
+    return !NavMeshAgent.pathPending &&
+           NavMeshAgent.remainingDistance <= NavMeshAgent.stoppingDistance &&
+           (!NavMeshAgent.hasPath || NavMeshAgent.velocity.sqrMagnitude < 0.01f);
   }
 
 }

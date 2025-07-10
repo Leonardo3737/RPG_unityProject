@@ -308,7 +308,7 @@ public abstract class PlayerBaseState : State
 		}
 	}
 
-	protected Vector3 FaceInputDirectionInstantly()
+	protected Vector3 FaceInputDirection(bool ApplySmoothing = false, float deltaTime = 0.1f)
 	{
 		Vector2 input = sm.InputHandler.InputMovement;
 		if (input == Vector2.zero) return Vector3.zero;
@@ -320,7 +320,26 @@ public abstract class PlayerBaseState : State
 
 		if (direction.sqrMagnitude < 0.01f) return Vector3.zero;
 
-		sm.transform.rotation = Quaternion.LookRotation(direction);
+		if (ApplySmoothing)
+		{
+			var newRotation = Quaternion.LookRotation(direction);
+			sm.transform.rotation = Quaternion.Slerp(sm.transform.rotation, newRotation, sm.RotationSpeed * deltaTime);
+		}
+		else
+		{
+			sm.transform.rotation = Quaternion.LookRotation(direction);
+		}
+
 		return direction;
-  }
+	}
+	protected void PositionCameraTarget()
+	{
+		var endPosition = sm.transform.position + new Vector3(0, sm.CameraTargetHeight);
+
+    if (sm.CameraTarget.transform.position != endPosition)
+    {
+      sm.CameraTarget.transform.position = endPosition;
+      return;
+    }
+	}
 }

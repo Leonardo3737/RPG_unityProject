@@ -16,6 +16,9 @@ public class PlayerAimState : PlayerBaseState
   private CinemachineOrbitalFollow Orbital;
   private Vector2 ScreenCenter;
   private Transform ArrowSpawn;
+  private AudioSource AudioSource;
+  private GameObject CurrentArrow;
+
   public PlayerAimState(PlayerStateMachine stateMachine) : base(stateMachine, StatesType.AIM) { }
 
 
@@ -25,12 +28,16 @@ public class PlayerAimState : PlayerBaseState
     sm.IsAiming = true;
     sm.AimImage.enabled = true;
 
+    PositionCameraTarget();
+
     ArrowSpawn = sm.CurrentEquipament.transform.Find("ArrowSpawn");
+    AudioSource = sm.CurrentEquipament.GetComponentInChildren<AudioSource>();
 
     // SEMPRE HABILITAR CONTROLE DA CAMERA COM MOUSE
     EnableCameraInputController();
 
     sm.Animator.CrossFadeInFixedTime(DrawArrowAnimation, 0.1f, sm.EquippedLayer);
+    sm.Animator.SetFloat(FreeLookSpeed, 0f);
     if (sm.FreeLookCamera.TryGetComponent(out Orbital))
     {
       CenterOrbitRadius = Orbital.Orbits.Center.Radius;
@@ -59,11 +66,11 @@ public class PlayerAimState : PlayerBaseState
 
     var currentPosition = sm.transform.position;
 
-    var cameraTargetPosition = sm.transform.position + new Vector3(0, sm.CameraTargetHeight);
+    /* var cameraTargetPosition = sm.transform.position + new Vector3(0, sm.CameraTargetHeight);
 
-    var cameraTargetFinalPosition = cameraTargetPosition + (sm.CameraTarget.transform.right * 0.7f) + (-sm.CameraTarget.transform.up * 0.3f);
+    var cameraTargetFinalPosition = cameraTargetPosition + (sm.CameraTarget.transform.right * 0.3f) + (-sm.CameraTarget.transform.up * 0.3f);
 
-    sm.CameraTarget.transform.position = Vector3.Lerp(sm.CameraTarget.transform.position, cameraTargetFinalPosition, deltaTime * 15f);
+    sm.CameraTarget.transform.position = Vector3.Lerp(sm.CameraTarget.transform.position, cameraTargetFinalPosition, deltaTime * 15f); */
 
     Vector3 lookDirection = targetPosition - currentPosition;
     lookDirection.y = 0;
@@ -78,6 +85,11 @@ public class PlayerAimState : PlayerBaseState
     {
       var drawArrowNormalizedTime = GetNormalizedTime(sm.Animator, "drawArrow", sm.EquippedLayer);
 
+      if (drawArrowNormalizedTime > 0.3f && CurrentArrow == null)
+      {
+        CurrentArrow = sm.SpawnArrow();
+        AudioSource.PlayOneShot(sm.DrawArrowSound);
+      }
       if (drawArrowNormalizedTime < 0.85f)
       {
         return;
@@ -92,6 +104,7 @@ public class PlayerAimState : PlayerBaseState
 
   public override void Exit()
   {
+    sm.DestroyObj(CurrentArrow);
     if (sm.AlternativeAimImage.enabled)
     {
       sm.AlternativeAimImage.enabled = false;
@@ -158,6 +171,7 @@ public class PlayerAimState : PlayerBaseState
 
     if (!IsShootAnimationStart)
     {
+      AudioSource.PlayOneShot(sm.ShootArrowSound);
       sm.Animator.CrossFadeInFixedTime(ShootAnimation, 0.1f);
       IsShootAnimationStart = true;
       return;
@@ -166,6 +180,8 @@ public class PlayerAimState : PlayerBaseState
 
     if (normalizedTime > 0.28f && !IsShooting)
     {
+      sm.DestroyObj(CurrentArrow);
+      CurrentArrow = null;
       sm.Shooting(targetPosition, ArrowSpawn);
       IsShooting = true;
     }
@@ -185,7 +201,7 @@ public class PlayerAimState : PlayerBaseState
     var origin = ArrowSpawn.position;
     var direction = (target - origin).normalized;
 
-    Debug.DrawRay(origin, direction * 50f, Color.red, 1f);
+    //Debug.DrawRay(origin, direction * 50f, Color.red, 1f);
 
     if (Physics.Raycast(origin, direction, out RaycastHit hit))
     {

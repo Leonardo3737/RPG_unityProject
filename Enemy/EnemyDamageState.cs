@@ -25,9 +25,11 @@ public class EnemyDamageState : EnemyBaseState
   {
     StateType = StatesType.DAMAGE;
 
+    sm.AudioSource.PlayOneShot(sm.DamageSounds[Random.Range(0, sm.DamageSounds.Length)]);
     sm.Animator.CrossFadeInFixedTime(DamageAnimation, 0.1f);
     sm.CurrentHealth -= Damage;
     sm.HealthImage.fillAmount = sm.CurrentHealth > 0 ? sm.CurrentHealth / sm.MaxHealth : 0;
+
 
   }
 

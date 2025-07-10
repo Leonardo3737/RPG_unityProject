@@ -22,13 +22,7 @@ public class PlayerFreeLookState : PlayerBaseState
     // SEMPRE HABILITAR CONTROLE DA CAMERA COM MOUSE
     EnableCameraInputController();
 
-    var endPosition = sm.transform.position + new Vector3(0, sm.CameraTargetHeight);
-
-    if (sm.CameraTarget.transform.position != endPosition)
-    {
-      sm.CameraTarget.transform.position = endPosition;
-      return;
-    }
+    PositionCameraTarget();
   }
 
   public override void Update(float deltaTime)

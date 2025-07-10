@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class PlayerAnimationEvents : MonoBehaviour
@@ -17,13 +18,14 @@ public class PlayerAnimationEvents : MonoBehaviour
   {
     sm.OnCancelAttackEvent += OnCancelAttack;
   }
-  
+
   public void OnDisable()
   {
     sm.OnCancelAttackEvent -= OnCancelAttack;
   }
 
-  public void OnCancelAttack() {
+  public void OnCancelAttack()
+  {
     OnCancelAttackEvent.Invoke();
   }
 
@@ -33,6 +35,9 @@ public class PlayerAnimationEvents : MonoBehaviour
 
     string AnimationName = parts[0];
     int ActionIndex = parts.Count() > 1 ? int.Parse(parts[1]) : 999; // o valor 999 evita de executar a primeira ação
+
+
+    sm.MakeSound(sm.VoiceAudioSource, sm.AttackSounds[UnityEngine.Random.Range(0, sm.AttackSounds.Length)]);
 
     OnStartAttackEvent?.Invoke(AnimationName, ActionIndex);
   }
@@ -49,4 +54,23 @@ public class PlayerAnimationEvents : MonoBehaviour
       sm.ChangeState(new PlayerFreeLookState(sm));
     }
   }
+
+  public void OnTakingFootStep()
+  {
+    sm.MakeSound(sm.FootStepAudioSource, sm.FootStepSounds[UnityEngine.Random.Range(0, sm.FootStepSounds.Length)]);
+  }
+  public void OnJumpStart()
+  {
+    sm.MakeSound(sm.FootStepAudioSource, sm.JumpStartSounds[UnityEngine.Random.Range(0, sm.JumpStartSounds.Length)]);
+  }
+
+  public void OnJumpEnd()
+  {
+    sm.MakeSound(sm.FootStepAudioSource, sm.JumpEndSounds[UnityEngine.Random.Range(0, sm.JumpEndSounds.Length)]);
+  }
+  public void OnRoll()
+  {
+    sm.MakeSound(sm.FootStepAudioSource, sm.RollSounds[UnityEngine.Random.Range(0, sm.RollSounds.Length)]);
+  }
+
 }

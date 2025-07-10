@@ -13,7 +13,7 @@ public class PlayerRollState : PlayerBaseState
 
   public override void Enter()
   {
-    FaceInputDirectionInstantly();
+    FaceInputDirection();
 
     sm.Animator.CrossFadeInFixedTime(RollAnimationName, 0.1f, sm.CurrentLayer);
     sm.Controller.height = sm.CrouchedControllerHeigth;

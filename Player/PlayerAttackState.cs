@@ -45,6 +45,7 @@ public class PlayerAttackState : PlayerBaseState
 
   public override void Enter()
   {
+
     if (!sm.IsTriggered)
     {
       EnableCameraInputController();
