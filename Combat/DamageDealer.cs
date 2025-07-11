@@ -1,8 +1,13 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering;
+
 public class DamageDealer : MonoBehaviour
 {
+  [SerializeField]
+  private MonoBehaviour animationEventSourceMono;
+
+  private IAttackAnimationEvents AnimationEvents;
+
   [SerializeField]
   private bool CanDealDamage;
   private List<GameObject> HasDealtDamage;
@@ -32,6 +37,9 @@ public class DamageDealer : MonoBehaviour
   private int WeaponDamage = 10;
 
   [SerializeField]
+  private int Layer;
+
+  [SerializeField]
   private List<DamageAction> Actions;
 
   [SerializeField]
@@ -39,9 +47,6 @@ public class DamageDealer : MonoBehaviour
 
   [SerializeField]
   private int ActionIndex;
-
-  [field: SerializeField]
-  private PlayerAnimationEvents PlayerAnimationEvents;
 
   public void Start()
   {
@@ -52,33 +57,37 @@ public class DamageDealer : MonoBehaviour
 
   public void OnEnable()
   {
-    PlayerAnimationEvents.OnStartAttackEvent += StartDealDamage;
-    PlayerAnimationEvents.OnEndAttackEvent += EndDealDamage;
-    PlayerAnimationEvents.OnCancelAttackEvent += EndDealDamage;
+    AnimationEvents = animationEventSourceMono as IAttackAnimationEvents;
+
+    AnimationEvents.OnStartAttackEvent += StartDealDamage;
+    AnimationEvents.OnEndAttackEvent += EndDealDamage;
+    AnimationEvents.OnCancelAttackEvent += EndDealDamage;
   }
 
   public void OnDisable()
   {
-    PlayerAnimationEvents.OnStartAttackEvent -= StartDealDamage;
-    PlayerAnimationEvents.OnEndAttackEvent -= EndDealDamage;
-    PlayerAnimationEvents.OnCancelAttackEvent -= EndDealDamage;
+    AnimationEvents.OnStartAttackEvent -= StartDealDamage;
+    AnimationEvents.OnEndAttackEvent -= EndDealDamage;
+    AnimationEvents.OnCancelAttackEvent -= EndDealDamage;
   }
 
   public void Update()
   {
     if (CanDealDamage)
     {
-      Vector3 origin = transform.position + (transform.forward * WeaponPosition_Z) + (transform.up * WeaponPosition_Y) + (transform.right * WeaponPosition_X);;
+      Vector3 origin = transform.position + (transform.forward * WeaponPosition_Z) + (transform.up * WeaponPosition_Y) + (transform.right * WeaponPosition_X); ;
       Vector3 direction = transform.rotation * Quaternion.Euler(weaponAngleDegrees_X, weaponAngleDegrees_Y, weaponAngleDegrees_Z) * Vector3.up;
-      var layerMask = 1 << 9;
+
+      var layerMask = 1 << Layer;
+
       if (Physics.Raycast(origin, direction, out RaycastHit hit, WeaponLength, layerMask))
       {
-        if (hit.transform.TryGetComponent(out EnemyStateMachine sm) && !HasDealtDamage.Contains(hit.transform.gameObject))
+        if (hit.transform.TryGetComponent(out StateMachine sm) && !HasDealtDamage.Contains(hit.transform.gameObject))
         {
 
-          if (!PlayerAnimationEvents.EffectiveAttack)
+          if (!AnimationEvents.GetEffectiveAttack())
           {
-            PlayerAnimationEvents.EffectiveAttack = true;
+            AnimationEvents.SetEffectiveAttack(true);
           }
 
           HasDealtDamage.Add(hit.transform.gameObject);
@@ -119,9 +128,9 @@ public class DamageDealer : MonoBehaviour
     {
       CanDealDamage = false;
     }
-    if (PlayerAnimationEvents.EffectiveAttack)
+    if (AnimationEvents.GetEffectiveAttack())
     {
-      PlayerAnimationEvents.EffectiveAttack = false;
+      AnimationEvents.SetEffectiveAttack(false);
     }
   }
 

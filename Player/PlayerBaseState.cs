@@ -106,7 +106,6 @@ public abstract class PlayerBaseState : State
 		}
 		else
 		{
-			Debug.Log("ESBAGAÇOU");
 			sm.Animator.SetFloat(FreeLookSpeed, CurrentAnimationSmooth, 0.1f, deltaTime);
 		}
 

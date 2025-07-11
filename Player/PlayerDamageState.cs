@@ -1,16 +1,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemyDamageState : EnemyBaseState
+public class PlayerDamageState : PlayerBaseState
 {
   private int Damage;
 
   private int DamageAnimation;
+  private float Timer;
 
   private DamageAction Action;
 
-  public EnemyDamageState(
-    EnemyStateMachine stateMachine,
+  public PlayerDamageState(
+    PlayerStateMachine stateMachine,
     int Damage,
     string DamageAnimationName,
     DamageAction Action
@@ -23,19 +24,28 @@ public class EnemyDamageState : EnemyBaseState
 
   public override void Enter()
   {
-    sm.NavMeshAgent.ResetPath();
-    sm.NavMeshAgent.velocity = Vector3.zero;
-    
     sm.VoiceAudioSource.PlayOneShot(sm.DamageSounds[Random.Range(0, sm.DamageSounds.Length)]);
-    sm.Animator.CrossFadeInFixedTime(DamageAnimation, 0.1f);
+    sm.Animator.CrossFadeInFixedTime(DamageAnimation, 0.1f, sm.CurrentLayer);
     sm.CurrentHealth -= Damage;
+
     sm.HealthImage.fillAmount = sm.CurrentHealth > 0 ? sm.CurrentHealth / sm.MaxHealth : 0;
-
-
   }
 
   public override void Update(float deltaTime)
   {
+    Timer += deltaTime;
+    if (Timer > 1f)
+    {
+      if (sm.IsTriggered)
+      {
+        sm.ChangeState(new PlayerTriggerState(sm));
+      }
+      else
+      {
+        sm.ChangeState(new PlayerFreeLookState(sm));
+      }
+      return;
+    }
     var animationTime = GetNormalizedTime(sm.Animator, "damage");
 
     if (Action != null)
@@ -56,12 +66,12 @@ public class EnemyDamageState : EnemyBaseState
   }
   public override bool CanPerformAction()
   {
-    return true;
+    return false;
   }
 
   public void End()
   {
-    sm.ChangeState(new EnemyCombatState(sm));
+
   }
 
 }

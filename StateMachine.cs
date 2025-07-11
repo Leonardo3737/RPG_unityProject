@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public abstract class StateMachine : MonoBehaviour
@@ -24,4 +25,6 @@ public abstract class StateMachine : MonoBehaviour
     {
         currentState?.Update(Time.deltaTime);
     }
+
+    public abstract void OnDamage(int WeaponDamage, string AnimationName, DamageAction Action);
 }

@@ -11,5 +11,6 @@ public enum StatesType
   TOGGLE_MODE,
   AIM,
   JUMP,
-  INVESTIGATE
+  INVESTIGATE,
+  COMBAT
 }

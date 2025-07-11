@@ -145,13 +145,6 @@ public class PlayerAimState : PlayerBaseState
 
     float velocityX = CurrentAnimationSmooth * input.x;
     float velocityZ = CurrentAnimationSmooth * input.y;
-
-    /* if (CurrentAnimationSmooth < 0.01f)
-    {
-    }
-    else
-    {
-    } */
     if (CurrentAnimationSmooth < 0.01f)
     {
       if (sm.Animator.GetFloat(TriggerSpeedX) != 0)

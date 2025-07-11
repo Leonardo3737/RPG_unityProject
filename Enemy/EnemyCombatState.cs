@@ -1,9 +1,9 @@
 using UnityEngine;
 
-public class EnemyChaseState : EnemyBaseState
+public class EnemyCombatState : EnemyBaseState
 {
 
-  public EnemyChaseState(EnemyStateMachine stateMachine) : base(stateMachine, StatesType.CHASE) { }
+  public EnemyCombatState(EnemyStateMachine stateMachine) : base(stateMachine, StatesType.COMBAT) { }
 
   public override void Enter()
   {
@@ -26,17 +26,23 @@ public class EnemyChaseState : EnemyBaseState
       sm.ChangeState(new EnemyAttackState(sm, AttackTypes.MainAttack));
       return;
     }
-    if ((!sm.Targeter.SelectTarget() || !sm.Targeter.HasLineOfSight()) && HasReachedDestination())
+    var target = sm.Targeter.CurrentTarget;
+    if (!sm.Targeter.SelectTarget() && target == null && HasReachedDestination())
     {
       sm.ChangeState(new EnemyPatrolState(sm));
       return;
     }
 
-    var target = sm.Targeter.CurrentTarget;
-    if (target != null)
+    var distance = Vector3.Distance(sm.transform.position, target.transform.position);
+
+    if (distance > 7f)
     {
-      sm.NavMeshAgent.destination = target.transform.position;
+      sm.ChangeState(new EnemyChaseState(sm));
+      return;
     }
+
+    sm.NavMeshAgent.destination = target.transform.position;
+
 
     var currentSpeed = sm.NavMeshAgent.velocity.magnitude;
     var animationSpeed = currentSpeed / sm.ChaseSpeed;

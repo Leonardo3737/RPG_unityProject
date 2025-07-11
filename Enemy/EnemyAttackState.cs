@@ -31,23 +31,14 @@ public class EnemyAttackState : EnemyBaseState
 
   public override void Enter()
   {
-
-    if (PreviousStateType == StatesType.ATTACK)
-    {
-      sm.AttackIndex++;
-    }
-    else
-    {
-      sm.AttackIndex = 0;
-    }
+    Attack = CurrentAttacks[sm.AttackIndex];
+    
+    sm.AttackIndex++;
 
     if (CurrentAttacks.Count < sm.AttackIndex + 1)
     {
-      EndCombo();
-      return;
+      sm.AttackIndex = 0;
     }
-
-    Attack = CurrentAttacks[sm.AttackIndex];
 
     sm.Animator.CrossFadeInFixedTime(Attack.AnimationName, 0.1f, 0, Attack.Start);
   }
@@ -70,7 +61,7 @@ public class EnemyAttackState : EnemyBaseState
   {
     if (sm.CancelAttack)
     {
-      sm.CancelAttack = false;
+      sm.Invoke("ResetCancelAttack", 0.2f);
     }
   }
 
@@ -83,6 +74,6 @@ public class EnemyAttackState : EnemyBaseState
 
   public void EndCombo()
   {
-    sm.ChangeState(new EnemyChaseState(sm));
+    sm.ChangeState(new EnemyCombatState(sm));
   }
 }

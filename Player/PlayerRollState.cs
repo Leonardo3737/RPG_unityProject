@@ -48,11 +48,11 @@ public class PlayerRollState : PlayerBaseState
 
     var animationTime = GetNormalizedTime(sm.Animator, "roll");
 
-    if (sm.CancelAttack && animationTime > 0.3f)
+    /* if (sm.CancelAttack && animationTime > 0.3f)
     {
       sm.OnCancelAttack();
       sm.CancelAttack = false;
-    }
+    } */
 
     float jumpDuration = 0.65f;
 

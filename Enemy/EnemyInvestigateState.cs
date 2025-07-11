@@ -20,8 +20,6 @@ public class EnemyInvestigateState : EnemyBaseState
 
     sm.NavMeshAgent.destination = Origin - (directionToOrigin * 0.3f);
 
-    Debug.Log(PreviousStateType.ToString());
-
     sm.NavMeshAgent.speed = sm.JustChased ? sm.ChaseSpeed : sm.PatrolSpeed;
 
     var currentSpeed = sm.NavMeshAgent.velocity.magnitude;

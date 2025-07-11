@@ -31,7 +31,7 @@ public class EnemyStateMachine : StateMachine
   public float RollSpeed { get; private set; } = 6f;
 
   [field: SerializeField]
-  public float MaxAttackDistance { get; private set; } = 1.2f;
+  public float MaxAttackDistance { get; private set; } = 0.9f;
 
   [field: SerializeField]
   public NavMeshAgent NavMeshAgent { get; private set; }
@@ -57,10 +57,19 @@ public class EnemyStateMachine : StateMachine
   public Canvas HealthCanvas { get; set; }
 
   [field: SerializeField]
-  public AudioSource AudioSource { get; private set; }
+  public AudioSource VoiceAudioSource { get; private set; }
+
+  [field: SerializeField]
+  public AudioSource FootStepAudioSource { get; private set; }
 
   [field: SerializeField]
   public AudioClip[] DamageSounds { get; private set; }
+
+  [field: SerializeField]
+  public AudioClip[] FootStepSounds { get; private set; }
+
+  [field: SerializeField]
+  public AudioClip[] AttackSounds { get; private set; }
 
   public int AttackIndex { get; set; } = 0;
   public bool IsBeingFocused { get; set; } = false;
@@ -73,6 +82,8 @@ public class EnemyStateMachine : StateMachine
   public Vector3? LastSoundOrigin { get; set; }
 
   public event Action<EnemyStateMachine> OnDieEvent;
+
+  public event Action OnCancelAttackEvent;
 
   public override void ChangeState(State newState)
   {
@@ -125,10 +136,10 @@ public class EnemyStateMachine : StateMachine
     }
   }
 
-  public void OnDamage(int damage, string DamageAnimationName, DamageAction Action)
+  public override void OnDamage(int damage, string DamageAnimationName, DamageAction Action)
   {
     CancelAttack = true;
-    
+
     if (!currentState.CanPerformAction()) return;
 
     ChangeState(
@@ -170,20 +181,21 @@ public class EnemyStateMachine : StateMachine
   {
     if (
       !currentState.CanPerformAction() ||
-      currentState.StateType != StatesType.PATROL
+      currentState.StateType != StatesType.PATROL ||
+      !IsPatrol
       ) return;
 
     ChangeState(new EnemyInvestigateState(this, origin));
   }
 
-  
+
 
   public virtual bool FaceMoveDirection()
   {
     Vector3 velocity = NavMeshAgent.velocity;
 
     if (velocity.sqrMagnitude < 0.0001f && currentState.StateType != StatesType.ATTACK)
-        return true;
+      return true;
 
     Vector3 direction;
 
@@ -206,4 +218,9 @@ public class EnemyStateMachine : StateMachine
     return Quaternion.Angle(transform.rotation, lookRotation) < 0.1f;
   }
 
+  public void ResetCancelAttack()
+  {
+    CancelAttack = false;
+    OnCancelAttackEvent?.Invoke();
+  }
 }

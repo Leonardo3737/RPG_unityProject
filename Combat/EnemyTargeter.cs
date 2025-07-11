@@ -26,15 +26,13 @@ public class EnemyTargeter : Targeter<PlayerStateMachine>
       return false;
     }
 
-    origin += (Vector3)direction;
-
     var viewDistance = 0f;
     if (TryGetComponent(out CapsuleCollider capsuleCollider))
     {
-
       viewDistance = capsuleCollider.radius;
     }
-    //Debug.DrawRay(origin, direction * viewDistance, Color.red, 1f);
+
+    //Debug.DrawRay(origin, (Vector3)direction * viewDistance, Color.red, 1f);
     if (Physics.Raycast(origin, (Vector3)direction, out RaycastHit hit, viewDistance))
     {
       Transform rootTransform = hit.transform.root;

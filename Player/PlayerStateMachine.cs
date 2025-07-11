@@ -96,6 +96,9 @@ public class PlayerStateMachine : StateMachine
 	public AudioClip[] AttackSounds { get; private set; }
 
 	[field: SerializeField]
+	public AudioClip[] DamageSounds { get; private set; }
+
+	[field: SerializeField]
 	public AudioClip DrawArrowSound { get; private set; }
 
 	[field: SerializeField]
@@ -104,10 +107,14 @@ public class PlayerStateMachine : StateMachine
 	[field: SerializeField]
 	public AudioClip ToggleModeSound { get; private set; }
 
+
 	[Header("Animator Controllers")]
 
 	[field: SerializeField]
 	public Animator Animator { get; private set; }
+
+	[field: SerializeField]
+  public Image HealthImage { get; set; }
 
 
 	public event Action OnCancelAttackEvent;
@@ -125,6 +132,8 @@ public class PlayerStateMachine : StateMachine
 	public int UnequippedLayer { get; set; } = 1;
 	public int EquippedLayer { get; set; } = 2;
 	public int CurrentLayer { get; set; }
+	public float MaxHealth { get; set; } = 100f;
+	public float CurrentHealth { get; set; }
 
 	public Modes CurrentMode = Modes.UNARMED;
 	public GameObject CurrentEquipament;
@@ -134,6 +143,7 @@ public class PlayerStateMachine : StateMachine
 		AimImage.enabled = false;
 		AlternativeAimImage.enabled = false;
 		CurrentLayer = UnequippedLayer;
+		CurrentHealth = MaxHealth;
 
 		ChangeState(new PlayerFreeLookState(this));
 
@@ -208,13 +218,18 @@ public class PlayerStateMachine : StateMachine
 
 	public void TogglePlayerAim()
 	{
-		if (IsAiming)
+		if (!IsAiming)
 		{
-			ChangeState(new PlayerFreeLookState(this));
+			ChangeState(new PlayerAimState(this));
+			return;
+		}
+		if (IsTriggered)
+		{
+			ChangeState(new PlayerTriggerState(this));
 		}
 		else
 		{
-			ChangeState(new PlayerAimState(this));
+			ChangeState(new PlayerFreeLookState(this));
 		}
 	}
 
@@ -261,11 +276,6 @@ public class PlayerStateMachine : StateMachine
 		if (!((PlayerBaseState)currentState).CanPerformAction() || IsJumping) return;
 		IsJumping = true;
 		ChangeState(new PlayerJumpState(this));
-	}
-
-	public void OnCancelAttack()
-	{
-		OnCancelAttackEvent.Invoke();
 	}
 
 	public void ToggleMode()
@@ -331,11 +341,6 @@ public class PlayerStateMachine : StateMachine
 			Quaternion.Euler(-82.518f, 29.145f, -46.026f)
 		);
 
-		/* if (arrow.TryGetComponent(out arrow arrow))
-		{
-
-		} */
-
 		return arrow;
 	}
 
@@ -360,11 +365,6 @@ public class PlayerStateMachine : StateMachine
 		{
 			arrow.SetTarget(target);
 		}
-
-		Vector3 direction = (target - spawn.position).normalized;
-		Quaternion rotation = Quaternion.LookRotation(direction);
-
-		//Arrow.transform.SetPositionAndRotation(spawn.position, rotation);
 	}
 
 	public void MakeSound(AudioSource source, AudioClip sound)
@@ -375,12 +375,22 @@ public class PlayerStateMachine : StateMachine
 		var position = transform.position;
 
 		Collider[] listeners = Physics.OverlapSphere(position, radius, LayerMask.GetMask("Enemy"));
-		
-    foreach (var col in listeners)
+
+		foreach (var col in listeners)
 		{
 			if (!col.TryGetComponent(out EnemyStateMachine enemyStateMachine)) continue;
-      enemyStateMachine.OnHeardSound(position);
+			enemyStateMachine.OnHeardSound(position);
 		}
 	}
 
+	public override void OnDamage(int WeaponDamage, string AnimationName, DamageAction Action)
+	{
+		ChangeState(new PlayerDamageState(this, WeaponDamage, AnimationName, Action));
+	}
+	
+	public void ResetCancelAttack()
+  {
+    CancelAttack = false;
+		OnCancelAttackEvent?.Invoke();
+  }
 }

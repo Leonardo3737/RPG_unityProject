@@ -120,6 +120,11 @@ public class PlayerAttackState : PlayerBaseState
 
   public override void Exit()
   {
+    if (sm.CancelAttack)
+    {
+      sm.Invoke("ResetCancelAttack", 0.2f);
+    }
+    
     var childTransform = sm.transform.Find("Erika");
     childTransform.rotation = sm.transform.rotation;
     if (sm.IsTriggered)
@@ -147,22 +152,6 @@ public class PlayerAttackState : PlayerBaseState
     }
   }
 
-  private void Charge(float deltaTime, float normalizedTime)
-  {
-    if (normalizedTime >= 0.13f && normalizedTime < 0.24f)
-    {
-      Vector3 move = sm.transform.forward * (8f * deltaTime);
-      sm.Controller.Move(move);
-      return;
-    }
-    if (normalizedTime >= 0.83f && normalizedTime < 0.91f)
-    {
-      Vector3 move = -sm.transform.forward * (2.5f * deltaTime);
-      sm.Controller.Move(move);
-      return;
-    }
-  }
-
   private bool PlayerMoveToTarget(float distance, Vector3 selfPos, Vector3 targetPos, float deltaTime)
   {
     var IsWalk = false;
@@ -187,13 +176,6 @@ public class PlayerAttackState : PlayerBaseState
         sm.Controller.Move(movement);
         IsWalk = true;
       }
-
-      /* var childTransform = sm.transform;
-      var targetPosition = sm.Targeter.GetTargetPosition().Value;
-
-      var direction = targetPosition - sm.transform.position;
-      direction.y = 0;
-      childTransform.rotation = Quaternion.LookRotation(direction); */
     }
     return IsWalk;
   }

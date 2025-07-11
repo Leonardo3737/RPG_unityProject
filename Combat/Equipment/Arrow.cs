@@ -63,7 +63,7 @@ public class Arrow : MonoBehaviour
   void OnTriggerEnter(Collider collision)
   {
     // Parar a física
-    if (collision.CompareTag("Enemy") || IsCollided || !IsLaunched)
+    if (collision.CompareTag("Enemy") || collision.CompareTag("Arrow") || IsCollided || !IsLaunched)
     {
       return;
     }
