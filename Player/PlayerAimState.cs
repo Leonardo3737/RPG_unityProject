@@ -146,8 +146,28 @@ public class PlayerAimState : PlayerBaseState
     float velocityX = CurrentAnimationSmooth * input.x;
     float velocityZ = CurrentAnimationSmooth * input.y;
 
-    sm.Animator.SetFloat(TriggerSpeedX, velocityX, 0.1f, deltaTime);
-    sm.Animator.SetFloat(TriggerSpeedZ, velocityZ, 0.1f, deltaTime);
+    /* if (CurrentAnimationSmooth < 0.01f)
+    {
+    }
+    else
+    {
+    } */
+    if (CurrentAnimationSmooth < 0.01f)
+    {
+      if (sm.Animator.GetFloat(TriggerSpeedX) != 0)
+      {
+        sm.Animator.SetFloat(TriggerSpeedX, 0);
+      }
+      if (sm.Animator.GetFloat(TriggerSpeedZ) != 0)
+      {
+        sm.Animator.SetFloat(TriggerSpeedZ, 0);
+      }
+    }
+    else
+    {
+      sm.Animator.SetFloat(TriggerSpeedX, velocityX, 0.1f, deltaTime);
+      sm.Animator.SetFloat(TriggerSpeedZ, velocityZ, 0.1f, deltaTime);
+    }
   }
 
   private void ApproachCamera()

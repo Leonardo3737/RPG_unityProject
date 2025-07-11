@@ -14,7 +14,7 @@ public class EnemyDamageState : EnemyBaseState
     int Damage,
     string DamageAnimationName,
     DamageAction Action
-    ) : base(stateMachine)
+    ) : base(stateMachine, StatesType.DAMAGE)
   {
     this.Damage = Damage;
     DamageAnimation = Animator.StringToHash(DamageAnimationName);
@@ -23,8 +23,9 @@ public class EnemyDamageState : EnemyBaseState
 
   public override void Enter()
   {
-    StateType = StatesType.DAMAGE;
-
+    sm.NavMeshAgent.ResetPath();
+    sm.NavMeshAgent.velocity = Vector3.zero;
+    
     sm.AudioSource.PlayOneShot(sm.DamageSounds[Random.Range(0, sm.DamageSounds.Length)]);
     sm.Animator.CrossFadeInFixedTime(DamageAnimation, 0.1f);
     sm.CurrentHealth -= Damage;

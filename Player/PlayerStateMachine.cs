@@ -293,7 +293,7 @@ public class PlayerStateMachine : StateMachine
 		StopAllCoroutines(); // Interrompe qualquer transição anterior
 		if (CurrentMode == Modes.EQUIPPED)
 		{
-			StartCoroutine(SmoothLayerWeight(UnequippedLayer, 1f, 0.3f)); // fade-out
+			StartCoroutine(SmoothLayerWeight(UnequippedLayer, 0f, 0.3f)); // fade-out
 			StartCoroutine(SmoothLayerWeight(EquippedLayer, 1f, 0.3f));   // fade-in
 			CurrentLayer = EquippedLayer;
 		}

@@ -3,28 +3,26 @@ using UnityEngine.AI;
 
 public class EnemyPatrolState : EnemyBaseState
 {
-  public EnemyPatrolState(EnemyStateMachine stateMachine) : base(stateMachine) { }
+  private float PatrolRadius = 7f;
+  private float WaitTimeAtPoint = 2f;
 
-  private float AnimationSpeed;
-  private float patrolRadius = 7f;
-  private float waitTimeAtPoint = 2f;
+  private Vector3 OriginPosition;
+  private float WaitTimer = 0f;
+  private float JustChasedTimer = 0f;
+  private bool Waiting = false;
 
-  private Vector3 originPosition;
-  private float waitTimer = 0f;
-  private bool waiting = false;
+  public EnemyPatrolState(EnemyStateMachine stateMachine) : base(stateMachine, StatesType.PATROL) { }
+
 
   public override void Enter()
   {
-    StateType = StatesType.PATROL;
 
-    originPosition = sm.transform.position;
+    OriginPosition = sm.transform.position;
 
     sm.NavMeshAgent.speed = sm.PatrolSpeed;
 
-    sm.NavMeshAgent.updateRotation = false;
-
     var currentSpeed = sm.NavMeshAgent.velocity.magnitude;
-    var animationSpeed = currentSpeed / sm.PursuitSpeed;
+    var animationSpeed = currentSpeed / sm.ChaseSpeed;
 
     sm.Animator.CrossFadeInFixedTime(FreeLookBlendTree, 0.1f);
     sm.Animator.SetFloat(FreeLookSpeed, animationSpeed);
@@ -37,37 +35,44 @@ public class EnemyPatrolState : EnemyBaseState
 
   public override void Update(float deltaTime)
   {
-    if (sm.Targeter.SelectTarget() && sm.Targeter.HasLineOfSight() && sm.IsPatrol)
+    if (sm.JustChased)
     {
-      sm.ChangeState(new EnemyPursuitState(sm));
-      return;
-    }
-    if (!sm.NavMeshAgent.pathPending && sm.NavMeshAgent.remainingDistance <= sm.NavMeshAgent.stoppingDistance && sm.IsPatrol)
-    {
-      if (!waiting)
+      JustChasedTimer += Time.deltaTime;
+
+      if (JustChasedTimer > 2f)
       {
-        waiting = true;
-        waitTimer = 0f;
+        sm.JustChased = false;
+      }
+    }
+
+    CheckIsPlayerVisible();
+
+    if (HasReachedDestination() && sm.IsPatrol)
+    {
+      if (!Waiting)
+      {
+        Waiting = true;
+        WaitTimer = 0f;
       }
 
-      waitTimer += Time.deltaTime;
+      WaitTimer += Time.deltaTime;
 
-      if (waitTimer >= waitTimeAtPoint)
+      if (WaitTimer >= WaitTimeAtPoint)
       {
-        waiting = false;
+        Waiting = false;
         SetNewDestination();
       }
     }
-    var currentSpeed = sm.NavMeshAgent.velocity.magnitude;
-    var animationSpeed = currentSpeed / sm.PursuitSpeed;
-    RunAnimation(deltaTime, animationSpeed);
-    FaceMoveDirection(deltaTime);
 
+    var currentSpeed = sm.NavMeshAgent.velocity.magnitude;
+    var animationSpeed = currentSpeed / sm.ChaseSpeed;
+
+    RunAnimation(deltaTime, animationSpeed);
   }
 
   private void SetNewDestination()
   {
-    Vector3 randomPoint = GetRandomPointInNavMesh(originPosition, patrolRadius);
+    Vector3 randomPoint = GetRandomPointInNavMesh(OriginPosition, PatrolRadius);
     sm.NavMeshAgent.SetDestination(randomPoint);
   }
 
@@ -93,7 +98,7 @@ public class EnemyPatrolState : EnemyBaseState
   private void OnDrawGizmosSelected()
   {
     Gizmos.color = Color.cyan;
-    Gizmos.DrawWireSphere(sm.transform.position, patrolRadius);
+    Gizmos.DrawWireSphere(sm.transform.position, PatrolRadius);
   }
 
   public override void Exit()

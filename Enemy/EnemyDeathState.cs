@@ -5,11 +5,10 @@ public class EnemyDeathState : EnemyBaseState
 
   private readonly int DeathAnimator = Animator.StringToHash("Dying");
 
-  public EnemyDeathState(EnemyStateMachine stateMachine) : base(stateMachine) { }
+  public EnemyDeathState(EnemyStateMachine stateMachine) : base(stateMachine, StatesType.DEATH) { }
 
   public override void Enter()
   {
-    StateType = StatesType.DEATH;
 
     sm.Animator.CrossFadeInFixedTime(DeathAnimator, 0.1f);
     sm.SetIsDie();

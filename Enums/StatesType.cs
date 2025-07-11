@@ -6,9 +6,10 @@ public enum StatesType
   TRIGGER,
   DAMAGE,
   PATROL,
-  PURSUIT,
+  CHASE,
   DEATH,
   TOGGLE_MODE,
   AIM,
-  JUMP
+  JUMP,
+  INVESTIGATE
 }

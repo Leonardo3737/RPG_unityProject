@@ -83,20 +83,32 @@ public abstract class PlayerBaseState : State
 		movement.y = 0;
 		Move(deltaTime, movement);
 
+		var inputMagnitude = sm.InputHandler.InputMovement.magnitude;
+
 		if (!applySmoothing)
 		{
-			float targetSpeed = sm.InputHandler.InputMovement.magnitude;
-			sm.Animator.SetFloat(FreeLookSpeed, targetSpeed);
+			sm.Animator.SetFloat(FreeLookSpeed, inputMagnitude);
 			return movement;
 		}
 		CurrentAnimationSmooth = Mathf.SmoothDamp(
 				CurrentAnimationSmooth,
-				sm.InputHandler.InputMovement == Vector2.zero ? 0f : sm.InputHandler.InputMovement.magnitude,
+				sm.InputHandler.InputMovement == Vector2.zero ? 0f : inputMagnitude,
 				ref CurrentAnimationVelocity,
 				0.2f
 		);
 
-		sm.Animator.SetFloat(FreeLookSpeed, CurrentAnimationSmooth, 0.1f, deltaTime);
+		if (Mathf.Abs(CurrentAnimationSmooth) < 0.01f)
+		{
+			if (sm.Animator.GetFloat(FreeLookSpeed) != 0)
+			{
+				sm.Animator.SetFloat(FreeLookSpeed, 0);
+			}
+		}
+		else
+		{
+			Debug.Log("ESBAGAÇOU");
+			sm.Animator.SetFloat(FreeLookSpeed, CurrentAnimationSmooth, 0.1f, deltaTime);
+		}
 
 		return movement;
 	}
@@ -336,10 +348,10 @@ public abstract class PlayerBaseState : State
 	{
 		var endPosition = sm.transform.position + new Vector3(0, sm.CameraTargetHeight);
 
-    if (sm.CameraTarget.transform.position != endPosition)
-    {
-      sm.CameraTarget.transform.position = endPosition;
-      return;
-    }
+		if (sm.CameraTarget.transform.position != endPosition)
+		{
+			sm.CameraTarget.transform.position = endPosition;
+			return;
+		}
 	}
 }

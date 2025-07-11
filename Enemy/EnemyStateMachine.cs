@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
 public class EnemyStateMachine : StateMachine
 {
+
+  public TextMeshProUGUI UIText;
 
   [field: SerializeField]
   public Animator Animator { get; private set; }
@@ -19,13 +22,16 @@ public class EnemyStateMachine : StateMachine
   public float PatrolSpeed { get; private set; } = 2f;
 
   [field: SerializeField]
-  public float PursuitSpeed { get; private set; } = 4.8f;
+  public float ChaseSpeed { get; private set; } = 4.8f;
 
   [field: SerializeField]
   public float RotationSpeed { get; private set; } = 15f;
 
   [field: SerializeField]
   public float RollSpeed { get; private set; } = 6f;
+
+  [field: SerializeField]
+  public float MaxAttackDistance { get; private set; } = 1.2f;
 
   [field: SerializeField]
   public NavMeshAgent NavMeshAgent { get; private set; }
@@ -56,18 +62,27 @@ public class EnemyStateMachine : StateMachine
   [field: SerializeField]
   public AudioClip[] DamageSounds { get; private set; }
 
-  public int AttackIndex = 0;
-  public bool IsBeingFocused = false;
-  public bool IsInvestigatingSound = false;
+  public int AttackIndex { get; set; } = 0;
+  public bool IsBeingFocused { get; set; } = false;
+  public bool IsInvestigatingSound { get; set; } = false;
+  public bool CancelAttack { get; set; } = false;
+  public bool JustChased { get; set; } = false;
 
   public bool IsDie { get; set; } = false;
 
-  public Vector3? LastSoundOrigin;
+  public Vector3? LastSoundOrigin { get; set; }
 
   public event Action<EnemyStateMachine> OnDieEvent;
 
+  public override void ChangeState(State newState)
+  {
+    UIText.text = newState.StateType.ToString();
+    base.ChangeState(newState);
+  }
+
   void Start()
   {
+    NavMeshAgent.updateRotation = false;
     ChangeState(new EnemyPatrolState(this));
   }
 
@@ -82,12 +97,6 @@ public class EnemyStateMachine : StateMachine
 
   public override void Update()
   {
-    if (IsInvestigatingSound && HasReachedDestination())
-    {
-      Debug.Log("terminou sua investigação");
-      IsInvestigatingSound = false;
-      LastSoundOrigin = null;
-    }
 
     if (HealthCanvas != null && FocusIndicatorImage != null && FocusIndicatorImage.enabled != IsBeingFocused)
     {
@@ -105,18 +114,21 @@ public class EnemyStateMachine : StateMachine
       HealthCanvas.transform.LookAt(HealthCanvas.transform.position + Camera.main.transform.forward);
     }
     base.Update();
+    FaceMoveDirection();
   }
 
   public void HandleTriggerEnter()
   {
     if (Targeter.SelectTarget() && Targeter.HasLineOfSight() && IsPatrol)
     {
-      ChangeState(new EnemyPursuitState(this));
+      ChangeState(new EnemyChaseState(this));
     }
   }
 
   public void OnDamage(int damage, string DamageAnimationName, DamageAction Action)
   {
+    CancelAttack = true;
+    
     if (!currentState.CanPerformAction()) return;
 
     ChangeState(
@@ -156,44 +168,42 @@ public class EnemyStateMachine : StateMachine
 
   public void OnHeardSound(Vector3 origin)
   {
-    if (currentState.StateType == StatesType.PURSUIT) return;
+    if (
+      !currentState.CanPerformAction() ||
+      currentState.StateType != StatesType.PATROL
+      ) return;
 
-    var aux = true;
-
-    if (LastSoundOrigin != null)
-    {
-      var distance = Vector3.Distance(origin, LastSoundOrigin.Value);
-
-      aux = distance < 2f;
-    }
-
-    if (IsInvestigatingSound && aux) return;
-
-    IsInvestigatingSound = true;
-
-    Debug.Log("escutou");
-
-    Vector3 directionToOrigin = origin - transform.position;
-    directionToOrigin.y = 0;
-
-    NavMeshAgent.destination = origin - (directionToOrigin * 0.3f);
-    NavMeshAgent.speed = PursuitSpeed;
-
-
-
-    /* Vector3 directionToOrigin = origin - transform.position;
-
-    directionToOrigin.y = 0; // ignora diferença de altura
-
-    transform.rotation = Quaternion.LookRotation(directionToOrigin); */
-
+    ChangeState(new EnemyInvestigateState(this, origin));
   }
 
-  public bool HasReachedDestination()
+  
+
+  public virtual bool FaceMoveDirection()
   {
-    return !NavMeshAgent.pathPending &&
-           NavMeshAgent.remainingDistance <= NavMeshAgent.stoppingDistance &&
-           (!NavMeshAgent.hasPath || NavMeshAgent.velocity.sqrMagnitude < 0.01f);
+    Vector3 velocity = NavMeshAgent.velocity;
+
+    if (velocity.sqrMagnitude < 0.0001f && currentState.StateType != StatesType.ATTACK)
+        return true;
+
+    Vector3 direction;
+
+    if (currentState.StateType == StatesType.ATTACK)
+    {
+      direction = (Targeter.CurrentTarget.transform.position - transform.position).normalized;
+    }
+    else
+    {
+      direction = velocity.normalized;
+    }
+
+    Quaternion lookRotation = Quaternion.LookRotation(direction);
+    transform.rotation = Quaternion.Slerp(
+        transform.rotation,
+        lookRotation,
+        RotationSpeed * Time.deltaTime
+    );
+
+    return Quaternion.Angle(transform.rotation, lookRotation) < 0.1f;
   }
 
 }
