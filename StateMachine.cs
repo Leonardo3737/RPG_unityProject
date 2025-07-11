@@ -11,6 +11,8 @@ public abstract class StateMachine : MonoBehaviour
 
     protected State currentState;
 
+    public bool IsDefending { get; set; }
+
     public virtual void ChangeState(State newState)
     {
         newState.PreviousStateType = currentState?.StateType;

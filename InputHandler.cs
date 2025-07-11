@@ -13,6 +13,7 @@ public class InputHandler : MonoBehaviour, Controls.IPlayerActions
     public event Action OnRollEvent;
     public event Action OnToggleModesEvent;
     public event Action OnJumpEvent;
+    public event Action OnDefenseEvent;
 
     void OnEnable()
     {
@@ -73,6 +74,9 @@ public class InputHandler : MonoBehaviour, Controls.IPlayerActions
         OnJumpEvent?.Invoke();
     }
 
-
-
+    public void OnDefense(InputAction.CallbackContext context)
+    {
+        if (!context.performed) return;
+        OnDefenseEvent?.Invoke();
+    }
 }

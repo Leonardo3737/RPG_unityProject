@@ -12,5 +12,6 @@ public enum StatesType
   AIM,
   JUMP,
   INVESTIGATE,
-  COMBAT
+  COMBAT,
+  DEFEND
 }

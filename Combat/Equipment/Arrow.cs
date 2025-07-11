@@ -80,7 +80,6 @@ public class Arrow : MonoBehaviour
 
       enemyStateMachine.transform.rotation = Quaternion.LookRotation(directionToOrigin);
 
-      Debug.Log("dano");
       enemyStateMachine.OnDamage(20, "Damage-1", null);
     }
     else

@@ -39,8 +39,10 @@ public class PlayerAnimationEvents : MonoBehaviour, IAttackAnimationEvents
     string AnimationName = parts[0];
     int ActionIndex = parts.Count() > 1 ? int.Parse(parts[1]) : 999; // o valor 999 evita de executar a primeira ação
 
-
-    sm.MakeSound(sm.VoiceAudioSource, sm.AttackSounds[UnityEngine.Random.Range(0, sm.AttackSounds.Length)]);
+    if (!sm.VoiceAudioSource.isPlaying)
+    {
+      sm.MakeSound(sm.VoiceAudioSource, sm.AttackSounds[UnityEngine.Random.Range(0, sm.AttackSounds.Length)]);
+    }
 
     OnStartAttackEvent?.Invoke(AnimationName, ActionIndex);
   }

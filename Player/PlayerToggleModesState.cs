@@ -60,13 +60,15 @@ public class PlayerToggleModesState : PlayerBaseState
       IsDone = true;
       End();
     }
-    if (normalizedTime > 1f)
-    {
-    }
   }
 
   public override void Exit()
   {
+    if (IsToggle && !IsDone)
+    {
+      sm.ToggleAnimatorController();
+      sm.Animator.SetBool(IsToggleMode, false);
+    }
     sm.Animator.SetLayerWeight(ToggleModelLayer, 0);
   }
 

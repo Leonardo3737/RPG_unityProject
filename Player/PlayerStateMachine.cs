@@ -114,7 +114,7 @@ public class PlayerStateMachine : StateMachine
 	public Animator Animator { get; private set; }
 
 	[field: SerializeField]
-  public Image HealthImage { get; set; }
+	public Image HealthImage { get; set; }
 
 
 	public event Action OnCancelAttackEvent;
@@ -134,7 +134,6 @@ public class PlayerStateMachine : StateMachine
 	public int CurrentLayer { get; set; }
 	public float MaxHealth { get; set; } = 100f;
 	public float CurrentHealth { get; set; }
-
 	public Modes CurrentMode = Modes.UNARMED;
 	public GameObject CurrentEquipament;
 
@@ -174,6 +173,7 @@ public class PlayerStateMachine : StateMachine
 		InputHandler.OnChangeTriggerEvent += HandleChangeTrigger;
 		InputHandler.OnToggleModesEvent += HandleToggleModes;
 		InputHandler.OnJumpEvent += HandleJump;
+		InputHandler.OnDefenseEvent += HandleDefense;
 	}
 	private void OnDisable()
 	{
@@ -184,6 +184,7 @@ public class PlayerStateMachine : StateMachine
 		InputHandler.OnChangeTriggerEvent -= HandleChangeTrigger;
 		InputHandler.OnToggleModesEvent -= HandleToggleModes;
 		InputHandler.OnJumpEvent -= HandleJump;
+		InputHandler.OnDefenseEvent -= HandleDefense;
 	}
 
 	public void HandleMainAttack()
@@ -276,6 +277,12 @@ public class PlayerStateMachine : StateMachine
 		if (!((PlayerBaseState)currentState).CanPerformAction() || IsJumping) return;
 		IsJumping = true;
 		ChangeState(new PlayerJumpState(this));
+	}
+
+	public void HandleDefense()
+	{
+		if (!((PlayerBaseState)currentState).CanPerformAction()) return;
+		ChangeState(new PlayerDefendState(this));
 	}
 
 	public void ToggleMode()
@@ -387,10 +394,10 @@ public class PlayerStateMachine : StateMachine
 	{
 		ChangeState(new PlayerDamageState(this, WeaponDamage, AnimationName, Action));
 	}
-	
+
 	public void ResetCancelAttack()
-  {
-    CancelAttack = false;
+	{
+		CancelAttack = false;
 		OnCancelAttackEvent?.Invoke();
-  }
+	}
 }

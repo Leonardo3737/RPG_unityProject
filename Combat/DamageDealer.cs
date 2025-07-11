@@ -85,6 +85,8 @@ public class DamageDealer : MonoBehaviour
         if (hit.transform.TryGetComponent(out StateMachine sm) && !HasDealtDamage.Contains(hit.transform.gameObject))
         {
 
+          if (sm.IsDefending) return;
+
           if (!AnimationEvents.GetEffectiveAttack())
           {
             AnimationEvents.SetEffectiveAttack(true);
